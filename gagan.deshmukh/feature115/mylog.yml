@@ -1,0 +1,44 @@
+setup:
+- name: Oracle VM VirtualBox Manager
+  comment: Open source, cross platform virtualization software to run multiple operating system on a single device
+  base-system: Installed on local machine
+  sources:
+    - https://www.virtualbox.org/wiki/Downloads
+  actions:
+    - Ran the VirtualBox Installer (exe file) as administrator
+    - Provided a path to  to save VM at a destination on local machine
+  version:
+    action: Navigate to help section on the VirtualBox interface - In help section select "About Virtual Box"
+    version: A screen pops up with the version info (VirtualBox 7.0)
+- name: Ubuntu Server 22.04.1
+  comment: Highly useful to build scalable cloud based solutions
+  base-system: Installed on VirtualBox VM
+  sources:
+    - https://ubuntu.com/download/server
+  actions:
+     - Initially allocated space and processor in the VM for ubuntu server
+     - Through GUI added the Ubuntu Server ISO to the VM
+     - Set up the login information
+  version:
+    action: In terminal hit a command then lsb_release -a
+    version: Distributor ID, Description, Release, Code Name displays on terminal - Ubuntu 22.04.1 LTS
+- name: bash
+  comment: A command processor and an interface to deal with Ubuntu
+  base-system: Present on Ubuntu Server
+  sources:
+    -  https://www.gnu.org/software/bash/
+  actions:
+    - It uas already installed with ubuntu server installation
+  version:
+    action: In terminal hit a command - bash -version
+    version: GNU bash, version 5.1.16(1)-release (x86_64-pc-linux-gnu)
+- name: git
+  comment: Open Source Version Control
+  base-system: On Ubuntu in VM
+  sources:
+    - https://git-scm.com/
+  actions:
+    - sudo apt install git
+  version:
+    action: In terminal hit a command - git --version
+    version: git version 2.34.1

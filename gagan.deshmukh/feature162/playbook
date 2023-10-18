@@ -1,0 +1,126 @@
+- hosts: node1.local
+  become: true
+  become_method: sudo
+
+  tasks:
+  - name: nginx installation for node1.
+    apt:
+      name: nginx
+      state: present
+      update_cache: true
+      cache_valid_time: 5000
+
+  - name: Configure nginx as load balancer test
+    blockinfile:
+      dest: /etc/nginx/nginx.conf
+      insertafter: "http {"
+      content: |
+        upstream balancenode {
+              server node2.local:80 weight=2;
+              server node3.local:8080 weight=1;
+          }
+          server {
+              listen 80;
+              server_name node1.local;
+              
+              location / {
+                proxy_pass http://balancenode;
+              }
+          }
+
+  - name: Start the nginx server 
+    service:
+      name: nginx
+      state: started
+      
+- hosts: node2.local
+ 
+  tasks:
+    - name: Install Apache
+      apt: name=apache2=2.4.41-4ubuntu3.12 update_cache=yes state=present
+
+    - name: Create document root
+      file:
+        path: "/var/www/node2.local"
+        state: directory
+        owner: "root"
+        mode: '0755'
+
+    - name: Copy index test page
+      copy:
+        
+        dest: "/var/www/node2.local/index.html"
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+          <title>node3.local tomcat server</title>
+          </head>
+          <body>
+          <p>vfzrlwhbehia</p>
+          </body>
+          </html>
+
+    - name: Set up Apache virtuahHost
+      template:
+        src: "./apache.conf"
+        dest: "/etc/apache2/sites-available/node2.local.conf"
+
+    - name: Enable new site
+      shell: /usr/sbin/a2ensite node2.local.conf
+      
+    - name: Disable default Apache site
+      shell: /usr/sbin/a2dissite 000-default.conf
+      when: true
+      notify: restart apache2
+
+  handlers:
+    - name: restart apache2
+      service:
+        name: apache2
+        state: restarted
+    
+- hosts: node3.local
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Update the System Packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Install jdk
+      apt:
+        name: default-jdk
+        state: present
+
+    - name: setup version 9.0.38 of Tomcat
+      get_url:
+        url: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.38/bin/apache-tomcat-9.0.38.tar.gz
+        dest: /usr/local
+
+    - name: Extract the gz file
+      unarchive:
+        src: /usr/local/apache-tomcat-9.0.38.tar.gz
+        dest: /usr/local
+        remote_src: yes
+
+    - name: Web server home page Configuration
+      copy:
+        dest: /usr/local/apache-tomcat-9.0.38/webapps/ROOT/index.jsp
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+          <title>node3.local tomcat server</title>
+          </head>
+          <body>
+          <p>pxmrqcxtprlw</p>
+          </body>
+          </html>
+
+    - name: Starting Tomcat Server
+      shell: nohup /usr/local/apache-tomcat-9.0.38/bin/startup.sh
+
+
